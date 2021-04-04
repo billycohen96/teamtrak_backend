@@ -22,6 +22,9 @@ phases:
 
   post_build:
     commands:
+      # Only proceed with post_build if tests have passed:
+      - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
+
       # Remove version file
       - rm -f VERSION.txt
 
@@ -37,3 +40,9 @@ phases:
       # Upload to AWS codeartifact repository
       - python3 -m twine upload --repository codeartifact dist/*
 
+reports:
+  pytest_reports:
+    files:
+      - report.xml
+    base-directory: tests
+    file-format: JUNITXML
