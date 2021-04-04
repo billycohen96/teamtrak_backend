@@ -1,5 +1,6 @@
 import os, sys, json, unittest
 from moto import mock_dynamodb2
+from decimal import *
 import boto3
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -322,19 +323,45 @@ class TestHandlerCase(unittest.TestCase):
 
     # Test building DTOs from msg bodies:
     def test_dto_creation(self):
+        helpers = [UsersHelper(), ProjectsHelper(), CommentsHelper(), TasksHelper()]
+
+        for helper in helpers:
+            dto = helper.dto.build(helper.data[0])
+
+            self.assertEqual(type(dto), helper.dto)
+
         self.assertTrue(True)
 
     # Test the building of a create query within the DynamoDBHelper class
     def test_create_query_building(self):
-        self.assertTrue(True)
+        db = DynamoDBHelper(table_name='test')
+
+        dto = UsersHelper().dto.build(UsersHelper().data[0])
+
+        self.assertTrue(db.upsert_record(dto=dto), {'Put': {'TableName': 'test', 'Item': {'id': {'S': 'b3ef12cd-16f5-4c31-b282-f77f7178a639'}, 'creation_date': {'S': '2021-04-04 14:59:18.159274'}, 'email_address': {'S': 'bob_khan2@kcl.ac.uk'}, 'first_name': {'S': 'bob'}, 'last_name': {'S': 'khan'}, 'member_of': {'SS': ['938197cf-eee5-40b7-9e4e-af21b241a7d1']}}}})
 
     # Test the building of a read query within the DynamoDBHelper class
     def test_read_query_building(self):
-        self.assertTrue(True)
+        db = DynamoDBHelper(table_name='test')
+
+        self.assertEqual(db.read_record(key={'email_address': 'test123@test123.com'}), {'Get': {'TableName': 'test', 'Key': {'email_address': {'S': 'test123@test123.com'}}}})
 
     # Test the conversion of JSON into DynamoDB JSON
     def test_json_to_dynamodb_json_conversion(self):
-        self.assertTrue(True)
+        db = DynamoDBHelper(table_name='test')
+
+        self.assertEqual(db.convert_json_to_dynamodb_record('s'), {'S': 's'})
+        self.assertEqual(db.convert_json_to_dynamodb_record(3), {'N': '3'})
+        self.assertEqual(db.convert_json_to_dynamodb_record({'a'}), {'SS': ['a']})
+
+    # Test the conversion of DynamoDB JSON into JSON
+    def test_dynamodb_json_to_json_conversion(self):
+        db = DynamoDBHelper(table_name='test')
+
+        self.assertEqual(db.convert_dynamodb_record_to_json({'M': {'S': 's'}}), {'M': 's'})
+        self.assertEqual(db.convert_dynamodb_record_to_json({'M': {'N': '3'}}), {'M': Decimal('3')})
+        self.assertEqual(db.convert_dynamodb_record_to_json({'M': {'SS': ['a']}}), {'M': {'a'}})
+
 
 
 def create_apigw_event(path, http_method, body, query_params):

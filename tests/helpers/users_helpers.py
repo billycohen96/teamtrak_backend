@@ -2,6 +2,8 @@ import json
 from moto import mock_dynamodb2
 import boto3
 
+from teamtrak_api.data_transfer_objects.user.user_dto import UserDTO
+
 
 class UsersHelper:
     def __init__(self):
@@ -9,6 +11,7 @@ class UsersHelper:
             self.data = json.load(json_file)
         self.path = "/user"
         self.primary_field = "email_address"
+        self.dto = UserDTO
 
     def get_invalid_data(self):
         data_copy = self.data

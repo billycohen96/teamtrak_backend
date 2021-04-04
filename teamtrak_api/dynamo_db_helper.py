@@ -120,3 +120,4 @@ class DynamoDBHelper:
     def convert_dynamodb_record_to_json(self, r, type_deserializer=TypeDeserializer()):
         return type_deserializer.deserialize({"M": r})
 
+

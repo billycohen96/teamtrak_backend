@@ -2,6 +2,8 @@ import json
 from moto import mock_dynamodb2
 import boto3
 
+from teamtrak_api.data_transfer_objects.comment.comment_dto import CommentDTO
+
 
 class CommentsHelper:
     def __init__(self):
@@ -9,6 +11,7 @@ class CommentsHelper:
             self.data = json.load(json_file)
         self.path = "/comment"
         self.primary_field = "id"
+        self.dto = CommentDTO
 
     def get_invalid_data(self):
         data_copy = self.data

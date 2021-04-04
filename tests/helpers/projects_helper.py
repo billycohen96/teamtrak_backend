@@ -2,6 +2,7 @@ import json
 from moto import mock_dynamodb2
 import boto3
 
+from teamtrak_api.data_transfer_objects.project.project_dto import ProjectDTO
 
 class ProjectsHelper:
     def __init__(self):
@@ -9,6 +10,7 @@ class ProjectsHelper:
             self.data = json.load(json_file)
         self.path = "/project"
         self.primary_field = "id"
+        self.dto = ProjectDTO
 
     def get_invalid_data(self):
         data_copy = self.data
