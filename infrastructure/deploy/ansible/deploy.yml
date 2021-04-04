@@ -35,7 +35,7 @@
 
     # DOWNLOAD ARTIFACT FROM REPOSITORY
     - name: Download artifact
-      shell: "python -m pip install -t {{ root_dir }}/tmp/artifact kanbanioapi-pkg-billycohen96"
+      shell: "python -m pip install -t {{ root_dir }}/tmp/artifact teamtrakapi-pkg-billycohen96"
 
     # EXTRACT VERSION NUMBER FROM PACKAGE METADATA
     - name: Register version number
