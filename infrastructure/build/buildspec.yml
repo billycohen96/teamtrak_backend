@@ -32,7 +32,7 @@ phases:
       - python3 -m build
 
       # Login to AWS codeartifact repository
-      - aws codeartifact login --tool twine --domain kio-artifact-domain --domain-owner 146145153843 --repository kio_project_api_repo
+      - aws codeartifact login --tool twine --domain teamtrak-api-domain --domain-owner 146145153843 --repository teamtrak-api-repository
 
       # Upload to AWS codeartifact repository
       - python3 -m twine upload --repository codeartifact dist/*
