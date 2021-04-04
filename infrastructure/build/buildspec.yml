@@ -17,8 +17,8 @@ phases:
 
   build:
     commands:
-      # Execute unit tests
-      - python tests/test_handler.py
+      # Execute unit tests, output results to xml file.
+      - python -m pytest tests/test_handler.py --junitxml=tests/report.xml
 
   post_build:
     commands:
