@@ -1,0 +1,13 @@
+.idea
+.pytest_cache/*
+*.terraform/*
+infrastructure/deploy/terraform/.terraform
+infrastructure/deploy/terraform/.terraform.tfstate
+infrastructure/deploy/ansible/vars/secrets
+env
+VERSION.txt
+*.zip
+*.DS_Store
+/tmp
+
+

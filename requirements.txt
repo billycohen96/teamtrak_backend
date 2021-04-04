@@ -1,0 +1,8 @@
+boto3
+moto
+awscli
+wheel
+build
+setuptools
+twine
+pytest

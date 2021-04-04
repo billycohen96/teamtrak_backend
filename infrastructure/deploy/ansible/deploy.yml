@@ -1,0 +1,96 @@
+- hosts: localhost
+  vars:
+    root_dir: "{{ playbook_dir }}/../../.."
+    component_name: "teamtrak-api"
+
+  vars_files:
+    - "{{ root_dir }}/infrastructure/deploy/ansible/vars/vars"
+    - "{{ root_dir }}/infrastructure/deploy/ansible/vars/secrets"
+
+  tasks:
+
+################################
+# PULL AND ZIP ARTIFACT
+################################
+    # DELETE TMP DIRECTORY
+    - name: Delete tmp directory
+      shell: "rm -rf {{ root_dir }}/tmp"
+
+    # CREATE TMP DIRECTORY
+    - name: Create tmp directory
+      shell: "mkdir {{ root_dir }}/tmp"
+
+    # GET CODEARTIFACT AUTHORIZATION TOKEN
+    - name: Fetch CodeArtifact token
+      shell: "AWS_ACCESS_KEY_ID={{ aws_access_key }} AWS_SECRET_ACCESS_KEY={{ aws_secret_access_key }} aws codeartifact get-authorization-token --region {{ aws_region }} --domain {{ aws_codeartifact_domain }} --domain-owner {{ aws_account_id }} --query authorizationToken --output text"
+      register: codeartifact_token
+
+    # SET AUTHORIZATION TOKEN VARIABLE
+    - set_fact:
+        codeartifact_token: "{{ codeartifact_token.stdout }}"
+
+    # REGISTER CODEARTIFACT REPOSITORY
+    - name: Register CodeArtifact repository
+      shell: "python -m pip config set global.index-url 'https://aws:{{ codeartifact_token }}@{{ aws_codeartifact_domain }}-{{ aws_account_id }}.d.codeartifact.{{ aws_region }}.amazonaws.com/pypi/{{ aws_codeartifact_repo }}/simple/'"
+
+    # DOWNLOAD ARTIFACT FROM REPOSITORY
+    - name: Download artifact
+      shell: "python -m pip install -t {{ root_dir }}/tmp/artifact kanbanioapi-pkg-billycohen96"
+
+    # EXTRACT VERSION NUMBER FROM PACKAGE METADATA
+    - name: Register version number
+      shell: 'cat {{ root_dir }}/tmp/artifact/*.dist-info/METADATA | grep "^Version" | cut -d " " -f 2'
+      register: version_number
+
+    # SET VERSION NUMBER VARIABLE
+    - set_fact:
+        version_number: "{{ version_number.stdout }}"
+
+################################
+# EXECUTE TERRAFORM PLAN
+################################
+
+    # REMOVE CURRENT TERRAFORM PLAN
+    - name:
+      shell: "rm -rf {{ root_dir }}/infrastructure/deploy/terraform/.terraform"
+
+    # INITIALISE TERRAFORM PLAN
+    - name: Terraform init
+      command: terraform init
+      args:
+        chdir: "{{ root_dir }}/infrastructure/deploy/terraform"
+      register: output
+
+    # TERRAFORM DEPLOY/DESTROY
+    - name: Terraform deploy/destroy
+      command:
+        cmd: terraform {{ terraform_command }}
+                -var 'access_key={{ aws_access_key }}'
+                -var 'secret_key={{ aws_secret_access_key }}'
+                -var 'component_name={{  component_name }}'
+                -var 'env={{ env }}'
+                -var 'version_number={{ version_number }}'
+                -var 'artifact_path={{ root_dir }}/tmp/artifact'
+                -auto-approve
+      args:
+        chdir: "{{ root_dir }}/infrastructure/deploy/terraform"
+      register: output
+
+################################
+# EXTRACT OUTPUT VARIABLES
+################################
+
+    - name: Terraform output
+      command:
+        cmd: terraform output
+      args:
+        chdir: "{{ root_dir }}/infrastructure/deploy/terraform"
+      register: output_variables
+
+    - debug: msg="{{ output_variables.stdout }}"
+
+
+################################
+# CLEAN UP
+################################
+

@@ -1,0 +1,7 @@
+aws_region: "eu-west-1"
+aws_account_id: "146145153843"
+
+aws_codeartifact_domain: "kio-artifact-domain"
+aws_codeartifact_repo: "kio_project_api_repo"
+
+terraform_command: "apply"

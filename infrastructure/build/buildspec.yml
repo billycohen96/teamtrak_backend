@@ -1,0 +1,39 @@
+version: 0.2
+
+env:
+  variables:
+    component_name: "teamtrak-api"
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+
+  pre_build:
+    commands:
+      # Install Python libraries
+      - python3 -m pip install --user --upgrade pip
+      - python3 -m pip install --user --upgrade -r requirements.txt
+
+  build:
+    commands:
+      # Execute unit tests
+      - python tests/test_handler.py
+
+  post_build:
+    commands:
+      # Remove version file
+      - rm -f VERSION.txt
+
+      # Capture build number, write to version file
+      - echo $CODEBUILD_BUILD_NUMBER >> VERSION.txt
+
+      # Create python package
+      - python3 -m build
+
+      # Login to AWS codeartifact repository
+      - aws codeartifact login --tool twine --domain kio-artifact-domain --domain-owner 146145153843 --repository kio_project_api_repo
+
+      # Upload to AWS codeartifact repository
+      - python3 -m twine upload --repository codeartifact dist/*
+
